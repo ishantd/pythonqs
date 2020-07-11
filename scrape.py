@@ -12,6 +12,27 @@ links = main_soup.select('td a')
 hrefs = []
 
 
+def clean_text(string):
+    if isinstance(string, list):
+        for i in range(len(string)):
+            escapes = ''.join([chr(char) for char in range(1, 32)])
+            translator = str.maketrans('', '', escapes)
+            string[i] = string[i].translate(translator)
+        final = string
+    else:
+        escapes = ''.join([chr(char) for char in range(1, 32)])
+        translator = str.maketrans('', '', escapes)
+        final = string.translate(translator)
+    return final
+
+def check_question(qs):
+    qs = qs.replace(" ", "")
+    qs = ''.join([i for i in qs if not i.isdigit()])
+    if len(qs) > 10:
+        return True
+    else:
+        return False
+
 created = 0
 nc = 0
 
@@ -38,35 +59,38 @@ def get_data_from_page(page):
         question = re.findall(r'^(.*?)<br\/>', x)
         if question:
             question = question[0] #Data Point
-            options = re.findall(r'[a-d]\)(.*?)<br\/>', x) #Data Point
-            options = json.dumps(options)
-            answer = re.findall(r'Answer:(.*?)<br\/>', x)  #Data Point
-            if answer:
-                answer = answer[0].replace(" ", "")
+            if check_question(question):
+                question = clean_text(question)
+                options = re.findall(r'[a-d]\)(.*?)<br\/>', x) #Data Point
+                options = clean_text(options)
+                options = json.dumps(options)
+                answer = re.findall(r'Answer:(.*?)<br\/>', x)  #Data Point
+                if answer:
+                    answer = answer[0].replace(" ", "")
+                else:
+                    answer = "NOT AVAILABLE"
+                    print("ANSER IN NA")
+                e = re.findall(r'Explanation:(.*?)$', x)
+                if e:  #Data Point
+                    e = e[0][1:]
+                else:
+                    e = "NOT AVAILABLE"
+                    print("EPXLAINFA IN NA")
+                    # nc = nc + 1
+                point = {
+                    'question' : question,
+                    'options': options,
+                    'answer': answer,
+                    'explanation': e,
+                }
+                data.append(point)
+                created = created + 1
             else:
-                answer = "NOT AVAILABLE"
-                print("ANSER IN NA")
-            e = re.findall(r'Explanation:(.*?)$', x)
-            if e:  #Data Point
-                e = e[0][1:]
-            else:
-                e = "NOT AVAILABLE"
-                print("EPXLAINFA IN NA")
-                # nc = nc + 1
-            point = {
-                'question' : question,
-                'options': options,
-                'answer': answer,
-                'explanation': e,
-            }
-            data.append(point)
-            created = created + 1
+                print("NOT A VALID QUESTION")
+                continue
         else:
             nc = nc + 1
             continue
-    # except Exception as e:
-    #     nc = nc + 1
-    #     print(e)
     return data
 
 def get_page_from_url(link):
