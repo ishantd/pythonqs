@@ -5,7 +5,8 @@ import itertools
 import sqlite3
 import json
 
-url = 'https://www.sanfoundry.com/1000-python-questions-answers/'
+# url = 'https://www.sanfoundry.com/1000-python-questions-answers/'
+url = 'https://www.sanfoundry.com/artificial-intelligence-questions-answers/'
 response = get(url)
 main_soup = BeautifulSoup(response.text, 'html.parser')
 links = main_soup.select('td a')
@@ -109,7 +110,7 @@ pages_data = list(itertools.chain.from_iterable(pages_data))
 print(type(pages_data[0]))
 
 
-conn = sqlite3.connect('data.db')
+conn = sqlite3.connect('aidata.db')
 cursor = conn.cursor()
 
 #Doping EMPLOYEE table if already exists.
